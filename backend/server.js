@@ -4,9 +4,9 @@ const dotenv = require("dotenv");
 dotenv.config();
 const cors = require("cors");
 const PORT = process.env.PORT || 3030;
-
+const authRoute = require("./routes/authRoute");
 const connectDb = require("./config/db");
-connectDb();
+connectDb(); // db connection
 
 
 
@@ -20,7 +20,7 @@ app.get("/",(req,res)=>{
 })
 
 
-
+app.use("/auth",authRoute);
 
 
 app.listen(PORT,()=>{
