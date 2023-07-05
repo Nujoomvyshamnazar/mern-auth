@@ -1,57 +1,68 @@
 const User = require('../models/userModel')
-
+const bcrypt = require('bcrypt');
+const { use } = require('../routes/authRoute');
 
 const loginUser = async (req,res) => {
   const { email,password } = req.body
   
   try{
-    
-      const user = await User.find({ email,password })
-
- 
-      if(user.length!=0)
-      {
-       console.log("Login Successful")
-        return res.status(200).send({success:true, msg:"Login Successful"})
-      }
-      else{
-        console.log("Invalid Credentials")
-        return res.status(200).send({success:false, msg:"Invalid Credentials"})
-
-      }
      
+   const user = await User.findOne({email})
+
+   if(user && (await bcrypt.compare(password, user.password)))
+   {
+    return res.status(200).send({success:true,msg:"Login Successful."})
+
+   }
+   else{
+    return res.status(200).send({success:false,msg:"Password do Not Match."})
+   }
+
+   
+
+  
          
   
   } catch(error) {
            return res.send(error)
   }
 
-
 }
 
-const registerUser =  async (req,res) => {
- const { user,email, password } = req.body
 
- const userExits = await User.findOne({email})
- 
- if(userExits){
-    return res.status(200).send({success:false,msg:"User Already exist with this email."})
- }
- else {
-    try{
-    const newEntry = new User(req.body)
-    newEntry.save()
-    console.log(newEntry);
+const registerUser = async (req, res) => {
+  const { user, email, password } = req.body;
 
-    return res.status(200).send({success:true, msg:"Registration Successfull"})
+  try {
+    const userExist = await User.findOne({ email });
 
-    } catch(error){
-
-        return res.status(400).send({success:false,msg: error})
+    if (userExist) {
+      return res
+        .status(200)
+        .send({ success: false, msg: "Email already exists." });
     }
 
- }
-}
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newEntry = await User.create({
+      user: user,
+      email: email,
+      password: hashedPassword,
+    }
+    );
+
+    return res
+      .status(200)
+      .send({ success: true, msg: "Registration successful." });
+
+  } catch (error) {
+    return res
+      .status(500)
+      .send({ success: false, msg: "Registration failed.", error: error });
+  }
+};
+
 
 module.exports = {
     registerUser,

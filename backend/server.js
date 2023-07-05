@@ -16,7 +16,9 @@ app.use(cors());
 
 
 app.get("/",(req,res)=>{
-    res.send("Port is working...");
+    res.json({
+        msg:"Port is working..."
+    });
 })
 
 
