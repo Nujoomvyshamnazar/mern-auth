@@ -1,6 +1,6 @@
 const User = require('../models/userModel')
 const bcrypt = require('bcrypt');
-const { use } = require('../routes/authRoute');
+const jwt = require('jsonwebtoken')
 
 const loginUser = async (req,res) => {
   const { email,password } = req.body
@@ -11,7 +11,14 @@ const loginUser = async (req,res) => {
 
    if(user && (await bcrypt.compare(password, user.password)))
    {
-    return res.status(200).send({success:true,msg:"Login Successful."})
+
+    const tokenData = {
+      _id: user._id,
+      user:user.user,
+      email:user.email
+    }
+    const token = jwt.sign(tokenData,"Secretkey123",{expiresIn:'30d'})
+    return res.status(200).send({success:true, msg:"Login Successful.",token:token})
 
    }
    else{
